@@ -10,6 +10,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     
     steps:
       - name: Checkout code
@@ -57,10 +59,11 @@ jobs:
 
       - name: Upload APK to Release
         if: github.ref == 'refs/heads/main'
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: CainoChatTemp/android/app/build/outputs/apk/debug/app-debug.apk
-          tag_name: build-${{ github.run_number }}
+          tag_name: v1.0.${{ github.run_number }}
           name: "CainoChat Build #${{ github.run_number }}"
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
