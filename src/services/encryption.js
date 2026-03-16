@@ -121,6 +121,46 @@ export function verifyPublicKey(scannedKey, expectedKey) {
   return scannedKey === expectedKey;
 }
 
+/**
+ * Generate a verification code from two public keys (mock)
+ * In production, this would use actual key comparison
+ */
+export function generateVerificationCode(publicKey, contactId) {
+  const combined = publicKey + ':' + contactId;
+  const hash = CryptoJS.SHA256(combined).toString(CryptoJS.enc.Hex);
+  // Return 6 groups of 4 digits for easy comparison
+  const digits = hash.replace(/[^0-9]/g, '').substring(0, 24);
+  return digits.match(/.{1,4}/g).join(' ');
+}
+
+/**
+ * Generate QR code data for security verification
+ */
+export function generateSecurityQR(userId, publicKey) {
+  return JSON.stringify({
+    app: 'cainochat',
+    version: '1.0',
+    userId,
+    publicKey,
+    timestamp: Date.now(),
+  });
+}
+
+/**
+ * Parse QR code data from another user
+ */
+export function parseSecurityQR(qrData) {
+  try {
+    const data = JSON.parse(qrData);
+    if (data.app !== 'cainochat') {
+      throw new Error('Not a CainoChat QR code');
+    }
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
 export default {
   generateKey,
   generateIV,
@@ -129,4 +169,7 @@ export default {
   deriveSharedKey,
   generateKeyPair,
   verifyPublicKey,
+  generateVerificationCode,
+  generateSecurityQR,
+  parseSecurityQR,
 };

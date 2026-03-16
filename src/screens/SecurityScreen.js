@@ -23,7 +23,7 @@ export default function SecurityScreen({route, navigation}) {
   const [showScanner, setShowScanner] = useState(false);
 
   // Generate key pair for this user
-  const keyPair = generateKeyPair();
+  const keyPair = generateKeyPair(user?.userId || 'me');
   const verificationCode = generateVerificationCode(keyPair.publicKey, contact.id);
   const qrData = generateSecurityQR(user?.id || 'me', keyPair.publicKey);
 

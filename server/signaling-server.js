@@ -12,7 +12,7 @@
  */
 
 const {WebSocketServer} = require('ws');
-const {v4: uuidv4} = require('crypto');
+const {v4: uuidv4} = require('uuid');
 
 const PORT = process.env.PORT || 8081;
 const wss = new WebSocketServer({port: PORT});

@@ -29,7 +29,7 @@ export default function HomeScreen({navigation}) {
     navigation.navigate('Call', {
       contact,
       callType: type,
-      roomId: generateRoomId(user?.id || 'me', contact.id),
+      roomId: generateRoomId(user?.userId || 'me', contact.id),
       isIncoming: false,
     });
   };
@@ -69,7 +69,7 @@ export default function HomeScreen({navigation}) {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <View>
-            <Text style={styles.greeting}>Hey {user?.contact?.split('@')[0] || 'there'} 👋</Text>
+            <Text style={styles.greeting}>Hey {user?.displayName || 'there'} 👋</Text>
             <Text style={styles.headerTitle}>CainoChat</Text>
           </View>
           <View style={styles.headerRight}>

@@ -1,5 +1,5 @@
 import React, {createContext, useContext, useState, useEffect} from 'react';
-import {getStoredUser, logout as authLogout, upgradeTier} from '../services/auth';
+import {getSession, logout as authLogout, upgradeToPaidTier} from '../services/auth';
 
 const AuthContext = createContext(null);
 
@@ -12,7 +12,7 @@ export function AuthProvider({children}) {
   }, []);
 
   async function checkAuth() {
-    const stored = await getStoredUser();
+    const stored = await getSession();
     setUser(stored);
     setLoading(false);
   }
@@ -27,7 +27,7 @@ export function AuthProvider({children}) {
   }
 
   async function upgrade(tier) {
-    const updated = await upgradeTier(tier);
+    const updated = await upgradeToPaidTier();
     if (updated) {
       setUser(updated);
     }

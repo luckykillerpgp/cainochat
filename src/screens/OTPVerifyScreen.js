@@ -63,7 +63,7 @@ export default function OTPVerifyScreen({route, navigation}) {
     try {
       const result = await verifyOTP(contact, fullCode);
       if (result.success) {
-        await login(result.user);
+        await login(result.session);
         // Navigation will auto-redirect via AuthContext
       } else {
         Alert.alert('Error', result.message || 'Invalid code');
