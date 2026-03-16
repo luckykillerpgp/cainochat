@@ -1,0 +1,66 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate React Native Android project
+        run: |
+          npx @react-native-community/cli init CainoChatTemp --version 0.73.4 --skip-install --pm npm
+          cp -r src/ CainoChatTemp/src/
+          cp App.js CainoChatTemp/
+          cp app.json CainoChatTemp/
+          cd CainoChatTemp && npm install --legacy-peer-deps
+
+      - name: Build APK
+        working-directory: CainoChatTemp/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+        env:
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: cainochat-debug-apk
+          path: CainoChatTemp/android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
+
+      - name: Upload APK to Release
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: CainoChatTemp/android/app/build/outputs/apk/debug/app-debug.apk
+          tag_name: build-${{ github.run_number }}
+          name: "CainoChat Build #${{ github.run_number }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
