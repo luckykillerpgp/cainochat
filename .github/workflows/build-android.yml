@@ -33,26 +33,22 @@ jobs:
       - name: 📚 Install npm dependencies
         run: npm install
 
-      - name: 🔧 Build release APK
+      - name: 🔧 Build debug APK
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon
+          ./gradlew assembleDebug --no-daemon
+
+      - name: 🔍 Find APK file
+        id: find-apk
+        run: |
+          APK_PATH=$(find android/app/build/outputs -name "*.apk" | head -1)
+          echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
+          echo "Found APK: $APK_PATH"
 
       - name: 📤 Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: CainoChat-release.apk
-          path: android/app/build/outputs/apk/release/app-release-unsigned.apk
+          name: CainoChat-debug.apk
+          path: ${{ steps.find-apk.outputs.apk_path }}
           retention-days: 90
-
-      - name: 🏷️ Create Release & attach APK
-        if: success()
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: build-${{ github.run_number }}
-          name: "CainoChat Build #${{ github.run_number }}"
-          files: android/app/build/outputs/apk/release/app-release-unsigned.apk
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
