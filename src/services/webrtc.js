@@ -6,14 +6,10 @@ import {
   MediaStream,
 } from 'react-native-webrtc';
 import signaling from './signaling';
+import SERVER_CONFIG from '../config/server';
 
-// ICE servers (STUN/TURN for NAT traversal)
-const ICE_SERVERS = {
-  iceServers: [
-    {urls: 'stun:stun.l.google.com:19302'},
-    {urls: 'stun:stun1.l.google.com:19302'},
-  ],
-};
+// ICE servers from config
+const ICE_SERVERS = SERVER_CONFIG.ICE_SERVERS;
 
 class WebRTCService {
   constructor() {
@@ -106,7 +102,7 @@ class WebRTCService {
     };
 
     // Connect to signaling server
-    await signaling.connect('ws://localhost:8081');
+    await signaling.connect(SERVER_CONFIG.SIGNALING_SERVER);
     signaling.joinRoom(roomId, userId);
 
     // Set up signaling listeners

@@ -5,29 +5,60 @@
  * and ICE candidate exchange between peers.
  *
  * Usage:
- *   npm install
  *   node signaling-server.js
  *
- * The server listens on port 8081 by default (override with PORT env var).
+ * Environment variables:
+ *   PORT=8081              — Server poort (default: 8081)
+ *   HOST=0.0.0.0           — Bind adres (default: 0.0.0.0)
+ *   SSL_KEY=/path/key.pem  — SSL private key (voor WSS)
+ *   SSL_CERT=/path/cert.pem — SSL certificaat (voor WSS)
  */
 
 const {WebSocketServer} = require('ws');
-const {v4: uuidv4} = require('uuid');
+const fs = require('fs');
+const https = require('https');
 
 const PORT = process.env.PORT || 8081;
-const wss = new WebSocketServer({port: PORT});
+const HOST = process.env.HOST || '0.0.0.0';
+const SSL_KEY = process.env.SSL_KEY;
+const SSL_CERT = process.env.SSL_CERT;
+
+let wss;
+let protocol = 'ws';
+
+// Start with SSL if certificates are provided
+if (SSL_KEY && SSL_CERT) {
+  const server = https.createServer({
+    key: fs.readFileSync(SSL_KEY),
+    cert: fs.readFileSync(SSL_CERT),
+  });
+  wss = new WebSocketServer({server});
+  server.listen(PORT, HOST, () => {
+    protocol = 'wss';
+    logStartup();
+  });
+} else {
+  wss = new WebSocketServer({port: PORT, host: HOST});
+  logStartup();
+}
+
+function logStartup() {
+  console.log(`
+╔═══════════════════════════════════════════╗
+║     🔴 CainoChat Signaling Server        ║
+║     Running on ${protocol}://${HOST}:${PORT}       ║
+╚═══════════════════════════════════════════╝
+`);
+  if (protocol === 'ws') {
+    console.log('⚠️  Running without SSL — use only for local development!');
+    console.log('   Set SSL_KEY and SSL_CERT for production (WSS).\n');
+  }
+}
 
 // Room storage
 const rooms = new Map();
 // Connection to user mapping
 const connections = new Map();
-
-console.log(`
-╔═══════════════════════════════════════════╗
-║     🔴 CainoChat Signaling Server        ║
-║     Running on ws://localhost:${PORT}       ║
-╚═══════════════════════════════════════════╝
-`);
 
 wss.on('connection', (ws) => {
   const connectionId = Math.random().toString(36).substr(2, 9);
